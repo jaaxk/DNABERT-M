@@ -21,12 +21,12 @@ from transformers.modeling_outputs import (MaskedLMOutput,
 from transformers.models.bert.modeling_bert import BertPreTrainedModel
 from transformers.modeling_utils import PreTrainedModel
 
-from .bert_padding import (index_first_axis,
+from bert_padding import (index_first_axis,
                                             index_put_first_axis, pad_input,
                                             unpad_input, unpad_input_only)
 
 try:
-    from .flash_attn_triton import flash_attn_qkvpacked_func
+    from flash_attn_triton import flash_attn_qkvpacked_func #add this script for triton***
 except ImportError as e:
     flash_attn_qkvpacked_func = None
 

@@ -39,7 +39,7 @@ from transformers import (
     CONFIG_MAPPING,
     MODEL_FOR_MASKED_LM_MAPPING,
     AutoConfig,
-    AutoModelForMaskedLM,
+    #AutoModelForMaskedLM,
     AutoTokenizer,
     DataCollatorForLanguageModeling,
     HfArgumentParser,
@@ -48,6 +48,8 @@ from transformers import (
     is_torch_xla_available,
     set_seed,
 )
+
+from bert_layers import BertForMaskedLM
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
@@ -398,12 +400,16 @@ def main():
     elif model_args.model_name_or_path:
         config = AutoConfig.from_pretrained(model_args.model_name_or_path, **config_kwargs)
     else:
-        config = CONFIG_MAPPING[model_args.model_type]()
+        """ config = CONFIG_MAPPING[model_args.model_type]()
         logger.warning("You are instantiating a new config instance from scratch.")
         if model_args.config_overrides is not None:
             logger.info(f"Overriding config: {model_args.config_overrides}")
-            config.update_from_string(model_args.config_overrides)
-            logger.info(f"New config: {config}")
+            config.update_from_string(model_args.config_overrides) #this script does not contain the parameters that BertForMaskedLM contains, so it throws an error when we try to give config file. We need to add them separately
+            logger.info(f"New config: {config}") """
+        
+        logger.warning(f"You are instantiating a new config instance from {model_args.config_overrides}.")
+        from utils import json_to_bert_config
+        config = json_to_bert_config(model_args.config_overrides)
 
     tokenizer_kwargs = {
         "cache_dir": model_args.cache_dir,
@@ -428,7 +434,7 @@ def main():
             if model_args.torch_dtype in ["auto", None]
             else getattr(torch, model_args.torch_dtype)
         )
-        model = AutoModelForMaskedLM.from_pretrained(
+        model = BertForMaskedLM.from_pretrained( #Changed
             model_args.model_name_or_path,
             from_tf=bool(".ckpt" in model_args.model_name_or_path),
             config=config,
@@ -441,7 +447,7 @@ def main():
         )
     else:
         logger.info("Training new model from scratch")
-        model = AutoModelForMaskedLM.from_config(config, trust_remote_code=model_args.trust_remote_code)
+        model = BertForMaskedLM(config) #changed from using .from_config (didnt contain that function)
 
     # We resize the embeddings only when necessary to avoid index errors. If you are creating a model from scratch
     # on a small vocab and want a smaller embedding size, remove this test.
@@ -617,6 +623,7 @@ def main():
     )
 
     # Initialize our Trainer
+    
     trainer = Trainer(
         model=model,
         args=training_args,
