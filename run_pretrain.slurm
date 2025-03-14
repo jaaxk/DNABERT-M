@@ -12,7 +12,7 @@ source dnabertm_venv/bin/activate
 python run_mlm.py \
 --model_type bert \
 --tokenizer_name zhihan1996/DNABERT-2-117M \
---train_file ./pretrain_microbiome.txt \
+--train_file ./full_dataset_filtered.txt \
 --config_overrides ./config.json \
 --output_dir ./output \
 --do_train True \
